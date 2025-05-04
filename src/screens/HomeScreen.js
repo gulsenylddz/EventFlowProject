@@ -1,92 +1,102 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, FlatList, Image, StyleSheet, Pressable, Animated, TouchableOpacity } from 'react-native';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+const categories = ['Tümü', 'Müzik', 'Teknoloji', 'Spor', 'Sanat'];
 
-// LOKAL GÖRSELLERİ İMPORT EDİYORUZ
-import MusicImage from '../assets/hanny-naibaho-aWXVxy8BSzc-unsplash.jpg';
-import TechImage from '../assets/alex-knight-2EJCSULRwC8-unsplash.jpg';
-import SportImage from '../assets/austris-augusts-52p1K0d0euM-unsplash.jpg';
-import ArtImage from '../assets/dan-farrell-fT49QnFucQ8-unsplash.jpg';
+const EventCard = ({ event, navigation }) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
 
-const HomeScreen = () => {
-  const [selectedCategory, setSelectedCategory] = useState('Tümü');
-  const [events, setEvents] = useState([]);
-  const navigation = useNavigation();
-  const handleLogout = () => {
-    navigation.navigate('Welcome');
-  };
   useEffect(() => {
-    fetch('https://680e5f6967c5abddd191ede6.mockapi.io/events')
-      .then(response => response.json())
-      .then(data => setEvents(data))
-      .catch(error => console.error('API ERROR:', error));
+    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
   }, []);
 
-  const getImage = (title) => {
-    if (title.includes('Music') || title.includes('Müzik')) return MusicImage;
-    if (title.includes('Tech') || title.includes('Teknoloji')) return TechImage;
-    if (title.includes('Run') || title.includes('Spor') || title.includes('Maraton')) return SportImage;
-    if (title.includes('Art') || title.includes('Sanat')) return ArtImage;
-    return MusicImage; // fallback default resim
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, { toValue: 0.96, useNativeDriver: true }).start();
   };
 
-  const filteredEvents = selectedCategory === 'Tümü'
-  ? events
-  : events.filter(event => {
-      if (selectedCategory === 'Müzik') return event.title.includes('Music') || event.title.includes('Müzik');
-      if (selectedCategory === 'Teknoloji') return event.title.includes('Tech') || event.title.includes('Teknoloji');
-      if (selectedCategory === 'Spor') return event.title.includes('Run') || event.title.includes('Spor') || event.title.includes('Marathon');
-      if (selectedCategory === 'Sanat') return event.title.includes('Art') || event.title.includes('Sanat');
-      return true;
-    });
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
+  };
 
-
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate('EventDetail', { event: { ...item, image: getImage(item.title) } })}
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={() => navigation.navigate('EventDetail', { event })}
     >
-      <Image source={getImage(item.title)} style={styles.image} />
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.date}>{item.date} - {item.time}</Text>
-      <Text style={styles.location}>{item.location}</Text>
-    </TouchableOpacity>
+      <Animated.View style={[styles.card, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
+        <Image source={{ uri: event.image }} style={styles.image} />
+        <View style={styles.cardContent}>
+          <Text style={styles.title}>{event.title}</Text>
+          <Text style={styles.info}>{event.date} - {event.time}</Text>
+          <Text style={styles.info}>{event.location}</Text>
+        </View>
+      </Animated.View>
+    </Pressable>
   );
+};
+
+const HomeScreen = ({ navigation }) => {
+  const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('Tümü');
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'events'));
+        const data = querySnapshot.docs.map(doc => ({
+          id: doc.id,       // 🔥 önemli!
+          ...doc.data(),
+        }));
+        setEvents(data);
+        setFilteredEvents(data);
+      } catch (error) {
+        console.error('Hata:', error);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const handleFilter = (category) => {
+    setSelectedCategory(category);
+    if (category === 'Tümü') {
+      setFilteredEvents(events);
+    } else {
+      const filtered = events.filter(event => event.category === category);
+      setFilteredEvents(filtered);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Etkinlikler</Text>
-      <View style={styles.categoryContainer}>
-  {['Tümü', 'Müzik', 'Teknoloji', 'Spor', 'Sanat'].map(category => (
-    <TouchableOpacity
-      key={category}
-      style={[
-        styles.categoryButton,
-        selectedCategory === category && styles.selectedCategoryButton
-      ]}
-      onPress={() => setSelectedCategory(category)}
-    >
-      <Text
-        style={[
-          styles.categoryButtonText,
-          selectedCategory === category && styles.selectedCategoryButtonText
-        ]}
-      >
-        {category}
-      </Text>
-    </TouchableOpacity>
-  ))}
+      <Text style={styles.heading}>Etkinlikler</Text>
 
-<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-    <Text style={styles.logoutButtonText}>Çıkış Yap</Text>
-  </TouchableOpacity>
-</View>
+      <View style={styles.filterRow}>
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            onPress={() => handleFilter(category)}
+            style={[
+              styles.filterButtonFixed,
+              selectedCategory === category && styles.selectedFilter,
+            ]}
+          >
+            <Text style={selectedCategory === category ? styles.selectedText : styles.filterText}>
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <FlatList
         data={filteredEvents}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <EventCard event={item} navigation={navigation} />}
+        contentContainerStyle={styles.list}
       />
     </View>
   );
@@ -95,87 +105,17 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f2f2f2',
-    paddingTop: 20,
-  },
-  header: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    alignSelf: 'center',
-    color: '#333',
-  },
-  card: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-    elevation: 4,
-  },
-  image: {
-    width: '100%',
-    height: 180,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '600',
-    margin: 10,
-    color: '#222',
-  },
-  date: {
-    fontSize: 16,
-    marginHorizontal: 10,
-    marginBottom: 4,
-    color: '#555',
-  },
-  location: {
-    fontSize: 16,
-    marginHorizontal: 10,
-    marginBottom: 10,
-    color: '#777',
-  },
-
-  categoryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 10,
-  },
-  categoryButton: {
-    backgroundColor: '#ddd',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-  },
-  selectedCategoryButton: {
-    backgroundColor: '#4CAF50',
-  },
-  categoryButtonText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  selectedCategoryButtonText: {
-    color: '#fff',
-  },
-
-  logoutContainer: {
-    alignItems: 'flex-end',
-    marginRight: 20,
-    marginBottom: 10,
-  },
-  logoutButton: {
-    backgroundColor: '#ff5c5c',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  
-  
+  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 20 },
+  heading: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, color: '#333', textAlign: 'center' },
+  filterRow: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 12, marginBottom: 12 },
+  filterButtonFixed: { flex: 1, backgroundColor: '#E0E0E0', borderRadius: 20, paddingVertical: 10, marginHorizontal: 4, alignItems: 'center' },
+  selectedFilter: { backgroundColor: '#4CAF50' },
+  filterText: { color: '#333', fontWeight: '500', fontSize: 14 },
+  selectedText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  list: { paddingHorizontal: 12, paddingBottom: 20 },
+  card: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 16, overflow: 'hidden', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 5 },
+  image: { width: '100%', height: 180 },
+  cardContent: { padding: 12 },
+  title: { fontSize: 18, fontWeight: 'bold', color: '#222', marginBottom: 4 },
+  info: { fontSize: 14, color: '#555' },
 });

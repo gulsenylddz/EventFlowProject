@@ -4,9 +4,12 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, A
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleLogin = () => {
-    if (email === 'test@test.com' && password === '123456') {
+    if (email === 'admin@event.com' && password === '123456') {
+      navigation.replace('AdminPanel');
+    } else if (email === 'test@test.com' && password === '123456') {
       navigation.replace('Home');
     } else {
       Alert.alert('Hatalı Giriş', 'Email veya şifre yanlış!');
@@ -19,36 +22,38 @@ const LoginScreen = ({ navigation }) => {
       style={styles.background}
     >
       <View style={styles.overlay}>
-        <Text style={styles.title}>Giriş Yap</Text>
+        <Text style={styles.title}>{isAdmin ? 'Admin Girişi' : 'Giriş Yap'}</Text>
 
         <TextInput
-  placeholder="Email"
-  placeholderTextColor="#999"
-  value={email}
-  onChangeText={setEmail}
-  style={styles.input}
-  keyboardType="email-address"
-/>
+          placeholder="Email"
+          placeholderTextColor="#999"
+          value={email}
+          onChangeText={setEmail}
+          style={styles.input}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-<TextInput
-  placeholder="Şifre"
-  placeholderTextColor="#999"
-  value={password}
-  onChangeText={setPassword}
-  secureTextEntry
-  style={styles.input}
-/>
+        <TextInput
+          placeholder="Şifre"
+          placeholderTextColor="#999"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          style={styles.input}
+        />
 
-
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={handleLogin}
         >
           <Text style={styles.buttonText}>Giriş Yap</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.registerText}>Hesabın yok mu? Kaydol</Text>
+        <TouchableOpacity onPress={() => setIsAdmin(!isAdmin)}>
+          <Text style={styles.registerText}>
+            {isAdmin ? 'Kullanıcı girişi yapmak istiyorum' : 'Admin girişi yapmak istiyorum'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -57,9 +62,6 @@ const LoginScreen = ({ navigation }) => {
 
 export default LoginScreen;
 
-// styles kısmı aynı kalacak (az önceki gibi)
-
-
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   overlay: {
-    backgroundColor: 'rgba(0,0,0,0.6)', 
+    backgroundColor: 'rgba(0,0,0,0.6)',
     margin: 30,
     padding: 20,
     borderRadius: 20,
@@ -86,9 +88,8 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 10,
     fontSize: 16,
-    color: 'black',  // <<< EKLEDİK
+    color: 'black',
   },
-  
   button: {
     backgroundColor: '#FF6347',
     paddingVertical: 15,
@@ -107,5 +108,6 @@ const styles = StyleSheet.create({
     color: '#FF6347',
     fontSize: 16,
     marginTop: 10,
+    textAlign: 'center',
   },
 });

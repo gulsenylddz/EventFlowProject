@@ -8,6 +8,8 @@ import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import EventDetailScreen from './src/screens/EventDetailScreen';
+import AdminPanel from './src/screens/AdminPanel';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -44,6 +46,11 @@ const App = () => {
         name="EventDetail"
         component={EventDetailScreen}
         options={{ headerShown: false }} 
+        />
+         <Stack.Screen
+          name="AdminPanel"
+          component={AdminPanel}
+          options={{ headerShown: false }} 
         />
 
       </Stack.Navigator>

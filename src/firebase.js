@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 // Bu config senin ekranında gördüğün config olacak!
 const firebaseConfig = {
@@ -19,5 +20,6 @@ const app = initializeApp(firebaseConfig);
 // Firestore'u başlat
 const db = getFirestore(app);
 export const auth = getAuth(app); // ✅ Auth burada tanımlandı
+const storage = getStorage(app); // ✅ storage oluştur
 
-export { db };
+export { db,storage };

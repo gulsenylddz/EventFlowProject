@@ -31,10 +31,14 @@ function HomePage({ user }) {
     };
 
     const fetchFavorites = async () => {
-      if (user) {
+      if (!user || !user.uid) return;
+
+      try {
         const q = query(collection(db, "favorites"), where("userId", "==", user.uid));
         const snapshot = await getDocs(q);
         setFavorites(snapshot.docs.map(doc => doc.data().eventId));
+      } catch (error) {
+        console.error("Favori etkinlikler alınırken hata:", error);
       }
     };
 
@@ -57,29 +61,33 @@ function HomePage({ user }) {
   });
 
   const toggleFavorite = async (event) => {
-    if (!user) {
-      alert("Favoriye eklemek için giriş yapmalısınız");
+    if (!user || !user.uid || !event || !event.id) {
+      console.warn("Geçersiz kullanıcı veya etkinlik bilgisi:", user, event);
       return;
     }
 
-    const q = query(
-      collection(db, "favorites"),
-      where("userId", "==", user.uid),
-      where("eventId", "==", event.id)
-    );
-    const snapshot = await getDocs(q);
+    try {
+      const q = query(
+        collection(db, "favorites"),
+        where("userId", "==", user.uid),
+        where("eventId", "==", event.id)
+      );
+      const snapshot = await getDocs(q);
 
-    if (!snapshot.empty) {
-      await deleteDoc(snapshot.docs[0].ref);
-      setFavorites(favorites.filter(id => id !== event.id));
-    } else {
-      await addDoc(collection(db, "favorites"), {
-        userId: user.uid,
-        eventId: event.id,
-        title: event.title,
-        image: event.image
-      });
-      setFavorites([...favorites, event.id]);
+      if (!snapshot.empty) {
+        await deleteDoc(snapshot.docs[0].ref);
+        setFavorites(favorites.filter(id => id !== event.id));
+      } else {
+        await addDoc(collection(db, "favorites"), {
+          userId: user.uid,
+          eventId: event.id,
+          title: event.title,
+          image: event.image
+        });
+        setFavorites([...favorites, event.id]);
+      }
+    } catch (error) {
+      console.error("Favori işlemi sırasında hata:", error);
     }
   };
 
@@ -115,6 +123,7 @@ function HomePage({ user }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredEvents.map((event) => (
           <div key={event.id} className="bg-white rounded-xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+            {/* Yalnızca görseli saran Link */}
             <Link to={`/event/${event.id}`}>
               <img
                 src={event.image}

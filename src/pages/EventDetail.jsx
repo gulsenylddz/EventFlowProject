@@ -13,12 +13,16 @@ import {
   orderBy
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 function EventDetail({ user }) {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState([]);
+  const navigate = useNavigate();
+
+
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -75,7 +79,12 @@ function EventDetail({ user }) {
   };
 
   const handleTicket = () => {
-    alert("Bilet alma işlemi henüz aktif değil!");
+    if (!user) {
+      alert("Bilet almak için giriş yapmalısınız.");
+      return;
+    }
+  
+    navigate(`/checkout/${event.id}`);
   };
 
   if (!event) return <p className="text-center pt-20">Yükleniyor...</p>;
@@ -93,10 +102,12 @@ function EventDetail({ user }) {
             onClick={handleTicket}
             className="w-fit mt-4 px-6 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold transition"
           >
-            🎟️ Bilet Al
+             Bilet Al
           </button>
         </div>
       </div>
+
+      
 
       {/* 💬 Yorumlar */}
       <div className="mt-10 bg-white p-6 rounded-xl shadow-md">

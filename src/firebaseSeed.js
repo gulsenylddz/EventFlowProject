@@ -109,7 +109,10 @@ const sampleEvents = [
       location: "Kodluyoruz İstanbul",
       image: "https://images.unsplash.com/photo-1555949963-aa79dcee981d",
       category: "Teknoloji"
-    }
+    },
+  
+   
+
   ];
   
   sampleEvents.forEach(async (event) => {

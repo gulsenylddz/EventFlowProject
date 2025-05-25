@@ -1,131 +1,59 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+// App.js
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import React, { useContext } from 'react';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import { ThemeProvider, ThemeContext } from './context/ThemeContext';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+import SplashScreen from './screens/SplashScreen';
+import WelcomeScreen from './screens/WelcomeScreen';
+import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
+import HomeScreen from './screens/HomeScreen';
+import EventDetail from './screens/EventDetailScreen';
+import CheckoutScreen from './screens/CheckoutScreen';
+import AdminPanel from './screens/AdminPanel';
+import TicketsScreen from './screens/TicketsScreen';
+import FavoritesScreen from './screens/FavoritesScreen';
+import PhotoUploadScreen from './screens/PhotoUploadScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import NotificationsScreen from './screens/NotificationsScreen';
+import MainTabs from './navigation/MainTabs';
+import PhotoGalleryScreen from './screens/PhotoGalleryScreen';
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+const Stack = createNativeStackNavigator();
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the recommendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
+const AppInner = () => {
+  const { isDark } = useContext(ThemeContext);
 
   return (
-    <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header/>
-        </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </View>
+    <NavigationContainer theme={isDark ? DarkTheme : DefaultTheme}>
+      <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Splash">
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="EventDetail" component={EventDetail} />
+        <Stack.Screen name="Checkout" component={CheckoutScreen} />
+        <Stack.Screen name="AdminPanel" component={AdminPanel} />
+        <Stack.Screen name="Main" component={MainTabs} />
+        <Stack.Screen name="TicketsScreen" component={TicketsScreen} />
+        <Stack.Screen name="FavoritesScreen" component={FavoritesScreen} />
+        <Stack.Screen name="PhotoUploadScreen" component={PhotoUploadScreen} />
+        <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+        <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} />
+        <Stack.Screen name="PhotoGalleryScreen" component={PhotoGalleryScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
